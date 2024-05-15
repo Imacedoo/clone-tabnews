@@ -1,5 +1,4 @@
 {
-  "editorconfig": true,
   "printWidth": 100,
   "tabWidth": 2,
   "useTabs": false,
@@ -9,6 +8,5 @@
   "jsxSingleQuote": false,
   "trailingComma": "all",
   "bracketSpacing": true,
-  "jsxBracketSameLine": false,
-  "arrowParents": "always"
+  "arrowParens": "always"
 }

@@ -15,7 +15,7 @@ async function status(request, response) {
     values: [databaseName],
   });
   const databaseOpenedConnection = databaseOpenedConnectionResult.rows[0].count;
-  console.log(databaseOpenedConnection);
+
   response.status(200).json({
     updated_at: updatedAt,
     dependencies: {

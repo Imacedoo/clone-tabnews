@@ -9,10 +9,11 @@ async function query(queryObject) {
 
     return result;
   } catch (error) {
+    console.log("\n Erro no database");
     console.log(error);
     throw error;
   } finally {
-    await client.end();
+    await client?.end();
   }
 }
 

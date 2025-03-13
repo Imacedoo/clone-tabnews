@@ -1,6 +1,10 @@
-const { InternalServerError, MethodNotAllowedError } = require("./errors");
+const { InternalServerError, MethodNotAllowedError, ValidationError } = require("./errors");
 
 function onErrorHandler(error, request, response) {
+  if (error instanceof ValidationError) {
+    return response.status(error.statusCode).json(error);
+  }
+
   const publicErrorObject = new InternalServerError({
     cause: error,
     statusCode: error.statusCode,

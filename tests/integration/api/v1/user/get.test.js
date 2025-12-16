@@ -157,8 +157,8 @@ describe("GET /api/v1/user", () => {
       // Session renewal assertions
       const renewedSessionObject = await session.findOneValidByToken(sessionObject.token);
 
-      expect(renewedSessionObject.expires_at > sessionObject.expires_at).toEqual(true);
-      expect(renewedSessionObject.updated_at > sessionObject.updated_at).toEqual(true);
+      expect(renewedSessionObject.expires_at > sessionObject.expires_at).toBe(true);
+      expect(renewedSessionObject.updated_at > sessionObject.updated_at).toBe(true);
 
       // Set‑Cookie assertions
       const parsedSetCookie = setCookieParser(response, {

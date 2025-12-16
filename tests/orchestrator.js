@@ -4,12 +4,14 @@ import { faker } from "@faker-js/faker";
 import database from "infra/database";
 import migrator from "models/migrator";
 import user from "models/user";
+import session from "models/session";
 
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
   runPendingMigrations,
   createUser,
+  createSession,
 };
 
 export default orchestrator;
@@ -52,4 +54,8 @@ async function createUser(userObject) {
     ...defaultUserObject,
     ...userObject,
   });
+}
+
+async function createSession(userId) {
+  return await session.create(userId);
 }

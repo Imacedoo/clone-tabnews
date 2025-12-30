@@ -6,10 +6,29 @@ import {
   ValidationError,
   NotFoundError,
   UnauthorizedError,
+  ForbiddenError,
 } from "./errors";
+import user from "models/user";
+
+const controller = {
+  errorHandlers: {
+    onNoMatch: onNoMatchHandler,
+    onError: onErrorHandler,
+  },
+  setSessionCookie,
+  clearSessionCookie,
+  injectAnonymousOrUser,
+  canRequest,
+};
+
+export default controller;
 
 function onErrorHandler(error, request, response) {
-  if (error instanceof ValidationError || error instanceof NotFoundError) {
+  if (
+    error instanceof ValidationError ||
+    error instanceof NotFoundError ||
+    error instanceof ForbiddenError
+  ) {
     return response.status(error.statusCode).json(error);
   }
 
@@ -55,13 +74,48 @@ function clearSessionCookie(response) {
   response.setHeader("Set-Cookie", setCookie);
 }
 
-const controller = {
-  errorHandlers: {
-    onNoMatch: onNoMatchHandler,
-    onError: onErrorHandler,
-  },
-  setSessionCookie,
-  clearSessionCookie,
-};
+async function injectAnonymousOrUser(request, _, next) {
+  if (request.cookies?.session_id) {
+    await injectAuthenticatedUser(request);
 
-export default controller;
+    return next();
+  }
+
+  injectAnonymousUser(request);
+  return next();
+}
+
+async function injectAuthenticatedUser(request) {
+  const sessionToken = request.cookies.session_id;
+  const sessionObject = await session.findOneValidByToken(sessionToken);
+  const userObject = await user.findOneById(sessionObject.user_id);
+
+  request.context = {
+    ...request.context,
+    user: userObject,
+  };
+}
+
+async function injectAnonymousUser(request) {
+  const anonymousUserOrObject = {
+    features: ["read:activation_token", "create:session", "create:user"],
+  };
+
+  request.context = {
+    ...request.context,
+    user: anonymousUserOrObject,
+  };
+}
+
+function canRequest(feature) {
+  return (request, _, next) => {
+    const userTryingToRequest = request.context.user;
+
+    if (userTryingToRequest.features.includes(feature)) return next();
+
+    throw new ForbiddenError({
+      message: "Você não possui permissão para executar essa ação",
+      action: `Verifique se o seu usuário possui a feature ${feature}`,
+    });
+  };
+}

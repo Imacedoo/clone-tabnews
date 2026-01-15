@@ -5,6 +5,7 @@ import database from "infra/database";
 import migrator from "models/migrator";
 import user from "models/user";
 import session from "models/session";
+import activation from "models/activation";
 
 const orchestrator = {
   waitForAllServices,
@@ -15,6 +16,7 @@ const orchestrator = {
   deleteAllEmails,
   getLastEmail,
   extractUUID,
+  activateUser,
 };
 
 export default orchestrator;
@@ -100,6 +102,10 @@ async function getLastEmail() {
   lastEmailItem.text = emailTextBody;
 
   return lastEmailItem;
+}
+
+async function activateUser(inactiveUser) {
+  return await activation.activateUserByUserId(inactiveUser.id);
 }
 
 function extractUUID(text) {

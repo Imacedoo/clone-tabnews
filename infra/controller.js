@@ -9,6 +9,7 @@ import {
   ForbiddenError,
 } from "./errors";
 import user from "models/user";
+import authorization from "models/authorization";
 
 const controller = {
   errorHandlers: {
@@ -111,7 +112,7 @@ function canRequest(feature) {
   return (request, _, next) => {
     const userTryingToRequest = request.context.user;
 
-    if (userTryingToRequest.features.includes(feature)) return next();
+    if (authorization.can(userTryingToRequest, feature)) return next();
 
     throw new ForbiddenError({
       message: "Você não possui permissão para executar essa ação",

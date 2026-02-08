@@ -4,7 +4,10 @@ import user from "models/user";
 
 const router = createRouter();
 
-router.get(getHandler).patch(patchHandler);
+router
+  .use(controller.injectAnonymousOrUser)
+  .get(getHandler)
+  .patch(controller.canRequest("update:user"), patchHandler);
 
 export default router.handler(controller.errorHandlers);
 

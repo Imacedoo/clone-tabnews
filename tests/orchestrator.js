@@ -17,6 +17,7 @@ const orchestrator = {
   getLastEmail,
   extractUUID,
   activateUser,
+  addFeatureToUser,
 };
 
 export default orchestrator;
@@ -77,6 +78,12 @@ async function createUser(userObject) {
     ...defaultUserObject,
     ...userObject,
   });
+}
+
+async function addFeatureToUser(userObject, features) {
+  const updatedUser = await user.addFeatures(userObject.id, features);
+
+  return updatedUser;
 }
 
 async function createSession(userId) {

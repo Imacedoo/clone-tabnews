@@ -5,6 +5,7 @@ import database from "infra/database";
 import migrator from "models/migrator";
 import user from "models/user";
 import session from "models/session";
+import activation from "models/activation";
 
 const orchestrator = {
   waitForAllServices,
@@ -14,6 +15,9 @@ const orchestrator = {
   createSession,
   deleteAllEmails,
   getLastEmail,
+  extractUUID,
+  activateUser,
+  addFeatureToUser,
 };
 
 export default orchestrator;
@@ -76,6 +80,12 @@ async function createUser(userObject) {
   });
 }
 
+async function addFeatureToUser(userObject, features) {
+  const updatedUser = await user.addFeatures(userObject.id, features);
+
+  return updatedUser;
+}
+
 async function createSession(userId) {
   return await session.create(userId);
 }
@@ -91,10 +101,22 @@ async function getLastEmail() {
   const emailListBody = await emailListResponse.json();
   const lastEmailItem = emailListBody.pop();
 
+  if (!lastEmailItem) return null;
+
   const emailTextResponse = await fetch(`${EMAIL_HTTP_URL}/messages/${lastEmailItem.id}.plain`);
   const emailTextBody = await emailTextResponse.text();
 
   lastEmailItem.text = emailTextBody;
 
   return lastEmailItem;
+}
+
+async function activateUser(inactiveUser) {
+  return await activation.activateUserByUserId(inactiveUser.id);
+}
+
+function extractUUID(text) {
+  const match = text.match(/[0-9a-fA-F-]{36}/);
+
+  return match ? match[0] : null;
 }

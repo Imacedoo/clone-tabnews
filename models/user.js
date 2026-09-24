@@ -8,9 +8,61 @@ const user = {
   findOneByUsername,
   findOneByEmail,
   update,
+  setFeatures,
+  addFeatures,
 };
 
 export default user;
+
+async function addFeatures(userId, features) {
+  const updatedUser = await runUpdateQuery(userId, features);
+
+  return updatedUser;
+
+  async function runUpdateQuery(userId, features) {
+    const results = await database.query({
+      text: `
+        UPDATE
+          users
+        SET
+          features = array_cat(features, $2),
+          updated_at = timezone('utc', now())
+        WHERE
+          id = $1
+        RETURNING
+          *;
+      `,
+      values: [userId, features],
+    });
+
+    return results.rows[0];
+  }
+}
+
+async function setFeatures(userId, features) {
+  const updatedUser = await runUpdateQuery(userId, features);
+
+  return updatedUser;
+
+  async function runUpdateQuery(userId, features) {
+    const results = await database.query({
+      text: `
+        UPDATE
+          users
+        SET
+          features = $2,
+          updated_at = timezone('utc', now())
+        WHERE
+          id = $1
+        RETURNING
+          *;
+      `,
+      values: [userId, features],
+    });
+
+    return results.rows[0];
+  }
+}
 
 async function findOneById(id) {
   const userFound = await runSelectQuery(id);
@@ -110,6 +162,8 @@ async function create(userInputValues) {
   await validateUniqueEmail(userInputValues.email);
   await hasPasswordInObject(userInputValues);
 
+  injectDefaultFeaturesInObject(userInputValues);
+
   const newUser = await runInsertQuery(userInputValues);
 
   return newUser;
@@ -120,18 +174,29 @@ async function create(userInputValues) {
         INSERT INTO users (
           username,
           email,
-          password
+          password,
+          features
         ) VALUES (
           $1,
           $2,
-          $3
+          $3,
+          $4
         )
         RETURNING *;
       `,
-      values: [userInputValues.username, userInputValues.email, userInputValues.password],
+      values: [
+        userInputValues.username,
+        userInputValues.email,
+        userInputValues.password,
+        userInputValues.features,
+      ],
     });
 
     return results.rows[0];
+  }
+
+  function injectDefaultFeaturesInObject(userInputValues) {
+    userInputValues.features = ["read:activation_token"];
   }
 }
 
